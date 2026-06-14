@@ -118,3 +118,77 @@ INSERT INTO Bookings (booking_id, user_id, match_id, seat_number, payment_status
 -- =========================================================================
 -- PART 2: SQL QUERIES
 -- =========================================================================
+
+--------------------------------------------------------
+-- Query 1: Retrieve all upcoming matches in the 'Champions League' whose match status is 'Available'.
+
+SELECT match_id, fixture, base_ticket_price
+FROM Matches
+WHERE tournament_category = 'Champions League'
+  AND match_status = 'Available';
+
+
+--------------------------------------------------------
+-- Query 2: Find users whose full name starts with 'Tanvir' or contains 'Haque' (case-insensitive).
+
+SELECT user_id, full_name, email
+FROM Users
+WHERE full_name ILIKE 'Tanvir%'
+   OR full_name ILIKE '%Haque%';
+
+
+--------------------------------------------------------
+-- Query 3: Retrieve bookings whose payment status is missing (NULL), displaying the missing value as 'Action Required'.
+
+SELECT booking_id,
+       user_id,
+       match_id,
+       COALESCE(payment_status, 'Action Required') AS systematic_status
+FROM Bookings
+WHERE payment_status IS NULL;
+
+
+--------------------------------------------------------
+-- Query 4: Retrieve booking details together with the user's full name and the match fixture (teams).
+
+SELECT b.booking_id,
+       u.full_name,
+       m.fixture,
+       b.total_cost
+FROM Bookings b
+INNER JOIN Users   u ON b.user_id  = u.user_id
+INNER JOIN Matches m ON b.match_id = m.match_id
+ORDER BY b.booking_id;
+
+
+--------------------------------------------------------
+-- Query 5: List all users with their booking IDs, ensuring that users who have never booked a ticket are still shown (booking_id NULL).
+
+SELECT u.user_id,
+       u.full_name,
+       b.booking_id
+FROM Users u
+LEFT JOIN Bookings b ON u.user_id = b.user_id
+ORDER BY u.user_id, b.booking_id;
+
+
+--------------------------------------------------------
+-- Query 6: Find bookings whose total cost is strictly higher than the average total cost of all bookings.
+
+SELECT booking_id,
+       match_id,
+       total_cost
+FROM Bookings
+WHERE total_cost > (SELECT AVG(total_cost) FROM Bookings)
+ORDER BY booking_id;
+
+
+--------------------------------------------------------
+-- Query 7: Retrieve the top 2 most expensive matches by base ticket price,skipping the single most expensive (premium) match.
+
+SELECT match_id,
+       fixture,
+       base_ticket_price
+FROM Matches
+ORDER BY base_ticket_price DESC
+LIMIT 2 OFFSET 1;
